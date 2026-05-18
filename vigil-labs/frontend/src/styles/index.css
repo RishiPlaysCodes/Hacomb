@@ -1,0 +1,132 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html, body, #root {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    background: #0a0a0f;
+    color: #e2e8f0;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #2a2a3e;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #3a3a5e;
+  }
+
+  /* Selection */
+  ::selection {
+    background: rgba(99, 102, 241, 0.3);
+    color: #fff;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-vigil-card/80 backdrop-blur-xl border border-vigil-border/50 rounded-xl;
+  }
+
+  .glass-panel-hover {
+    @apply glass-panel hover:bg-vigil-hover hover:border-vigil-primary/30 transition-all duration-200;
+  }
+
+  .neon-text {
+    text-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
+  }
+
+  .glow-border {
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.2), inset 0 0 10px rgba(99, 102, 241, 0.05);
+  }
+
+  .input-field {
+    @apply w-full px-4 py-2.5 bg-vigil-surface border border-vigil-border rounded-lg
+           text-vigil-text placeholder-vigil-text-dim
+           focus:outline-none focus:border-vigil-primary focus:ring-1 focus:ring-vigil-primary/50
+           transition-all duration-200;
+  }
+
+  .btn-primary {
+    @apply px-5 py-2.5 bg-vigil-primary hover:bg-vigil-primary-light
+           text-white font-medium rounded-lg
+           shadow-glow-sm hover:shadow-glow
+           transition-all duration-200 active:scale-[0.98];
+  }
+
+  .btn-secondary {
+    @apply px-5 py-2.5 bg-vigil-surface border border-vigil-border
+           text-vigil-text hover:bg-vigil-hover hover:border-vigil-primary/50
+           font-medium rounded-lg transition-all duration-200 active:scale-[0.98];
+  }
+
+  .btn-danger {
+    @apply px-5 py-2.5 bg-vigil-danger/10 border border-vigil-danger/30
+           text-vigil-danger hover:bg-vigil-danger/20
+           font-medium rounded-lg transition-all duration-200 active:scale-[0.98];
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 text-xs font-medium rounded-full;
+  }
+
+  .badge-success {
+    @apply badge bg-vigil-success/10 text-vigil-success border border-vigil-success/20;
+  }
+
+  .badge-warning {
+    @apply badge bg-vigil-warning/10 text-vigil-warning border border-vigil-warning/20;
+  }
+
+  .badge-danger {
+    @apply badge bg-vigil-danger/10 text-vigil-danger border border-vigil-danger/20;
+  }
+
+  .badge-info {
+    @apply badge bg-vigil-secondary/10 text-vigil-secondary border border-vigil-secondary/20;
+  }
+
+  .stat-card {
+    @apply glass-panel p-5 flex flex-col gap-2;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-vigil-primary to-vigil-secondary bg-clip-text text-transparent;
+  }
+
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient-shift 3s ease infinite;
+  }
+
+  @keyframes gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+}
