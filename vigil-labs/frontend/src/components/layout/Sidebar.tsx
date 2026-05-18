@@ -12,17 +12,21 @@ import {
   Shield,
   Terminal,
   Zap,
+  Package,
+  GitBranch,
 } from 'lucide-react';
 import { useAppStore } from '../../store/appStore';
 import { cn } from '../../utils/cn';
 
 const navItems = [
   { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', color: 'text-vigil-primary' },
-  { path: '/tools', icon: Wrench, label: 'Tool Registry', color: 'text-vigil-secondary' },
+  { path: '/store', icon: Package, label: 'Tool Store', color: 'text-vigil-neon' },
+  { path: '/tools', icon: Wrench, label: 'My Tools', color: 'text-vigil-secondary' },
   { path: '/builder', icon: PlusCircle, label: 'Tool Builder', color: 'text-vigil-accent' },
-  { path: '/history', icon: History, label: 'History', color: 'text-vigil-warning' },
-  { path: '/ai', icon: Brain, label: 'AI Assistant', color: 'text-vigil-neon' },
-  { path: '/settings', icon: Settings, label: 'Settings', color: 'text-vigil-text-muted' },
+  { path: '/workflows', icon: GitBranch, label: 'Workflows', color: 'text-vigil-warning' },
+  { path: '/history', icon: History, label: 'History', color: 'text-vigil-text-muted' },
+  { path: '/ai', icon: Brain, label: 'AI Agent', color: 'text-vigil-neon-blue' },
+  { path: '/settings', icon: Settings, label: 'Settings', color: 'text-vigil-text-dim' },
 ];
 
 export default function Sidebar() {

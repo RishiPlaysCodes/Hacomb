@@ -14,10 +14,12 @@ import { useState } from 'react';
 
 const pageTitles: Record<string, string> = {
   '/dashboard': 'Dashboard',
-  '/tools': 'Tool Registry',
-  '/builder': 'Custom Tool Builder',
+  '/store': 'Tool Store',
+  '/tools': 'My Tools',
+  '/builder': 'AI Tool Builder',
+  '/workflows': 'Workflows',
   '/history': 'Execution History',
-  '/ai': 'AI Assistant',
+  '/ai': 'AI Agent',
   '/settings': 'Settings',
 };
 

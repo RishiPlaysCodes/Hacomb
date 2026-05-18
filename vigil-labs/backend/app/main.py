@@ -9,9 +9,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
-from app.core.database import init_db, close_db
+from app.core.database import init_db, close_db, AsyncSessionLocal
 from app.core.security import decode_token
-from app.api.routes import auth, tools, execution, system
+from app.api.routes import auth, tools, execution, system, store, workflows
 from app.api.websocket.terminal import ws_manager
 
 
@@ -20,6 +20,31 @@ async def lifespan(app: FastAPI):
     """Application lifecycle management."""
     # Startup
     await init_db()
+    # Seed store catalog on first run
+    from app.services.store_catalog import TOOL_CATALOG
+    from app.models.store import StoreTool
+    from sqlalchemy import select
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(select(StoreTool).limit(1))
+        if not result.scalar_one_or_none():
+            for tool_data in TOOL_CATALOG:
+                st = StoreTool(
+                    name=tool_data["name"], slug=tool_data["slug"],
+                    category=tool_data["category"], description=tool_data.get("description", ""),
+                    executable_name=tool_data.get("executable_name"),
+                    install_method=tool_data.get("install_method", "manual"),
+                    install_command_linux=tool_data.get("install_command_linux"),
+                    install_command_windows=tool_data.get("install_command_windows"),
+                    github_repo=tool_data.get("github_repo"),
+                    github_url=tool_data.get("github_url"),
+                    risk_level=tool_data.get("risk_level", "medium"),
+                    supports_linux=tool_data.get("supports_linux", True),
+                    supports_windows=tool_data.get("supports_windows", False),
+                    tags=tool_data.get("tags", []),
+                    is_featured=tool_data.get("is_featured", False), is_verified=True,
+                )
+                session.add(st)
+            await session.commit()
     yield
     # Shutdown
     await close_db()
@@ -46,6 +71,8 @@ app.include_router(auth.router)
 app.include_router(tools.router)
 app.include_router(execution.router)
 app.include_router(system.router)
+app.include_router(store.router)
+app.include_router(workflows.router)
 
 
 # WebSocket endpoint for terminal streaming

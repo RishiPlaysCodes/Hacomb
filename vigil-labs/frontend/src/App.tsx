@@ -5,11 +5,13 @@ import MainLayout from './components/layout/MainLayout';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import ToolsPage from './pages/ToolsPage';
+import StorePage from './pages/StorePage';
 import ToolBuilderPage from './pages/ToolBuilderPage';
 import ExecutionPage from './pages/ExecutionPage';
 import HistoryPage from './pages/HistoryPage';
 import AIAssistantPage from './pages/AIAssistantPage';
 import SettingsPage from './pages/SettingsPage';
+import WorkflowsPage from './pages/WorkflowsPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore();
@@ -44,8 +46,10 @@ export default function App() {
                   <Route path="/" element={<Navigate to="/dashboard" replace />} />
                   <Route path="/dashboard" element={<DashboardPage />} />
                   <Route path="/tools" element={<ToolsPage />} />
+                  <Route path="/store" element={<StorePage />} />
                   <Route path="/builder" element={<ToolBuilderPage />} />
                   <Route path="/builder/:toolId" element={<ToolBuilderPage />} />
+                  <Route path="/workflows" element={<WorkflowsPage />} />
                   <Route path="/execute/:toolId" element={<ExecutionPage />} />
                   <Route path="/history" element={<HistoryPage />} />
                   <Route path="/ai" element={<AIAssistantPage />} />
