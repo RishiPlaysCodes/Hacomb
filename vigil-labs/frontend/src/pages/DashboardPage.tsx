@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
   Wrench, Activity, Clock, Shield, Terminal, Cpu, HardDrive,
-  MemoryStick, TrendingUp, Play, Star, AlertTriangle
+  MemoryStick, TrendingUp, Play, Star, AlertTriangle, Package,
+  GitBranch, Brain, Zap,
 } from 'lucide-react';
 import { api } from '../utils/api';
 
@@ -233,8 +234,19 @@ export default function DashboardPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
       >
+        <button
+          onClick={() => navigate('/store')}
+          className="glass-panel-hover p-5 text-left group"
+        >
+          <div className="w-10 h-10 rounded-lg bg-vigil-neon/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+            <Package size={20} className="text-vigil-neon" />
+          </div>
+          <h4 className="font-medium text-vigil-text">Tool Store</h4>
+          <p className="text-xs text-vigil-text-dim mt-1">Browse and install tools from the marketplace</p>
+        </button>
+
         <button
           onClick={() => navigate('/builder')}
           className="glass-panel-hover p-5 text-left group"
@@ -242,30 +254,30 @@ export default function DashboardPage() {
           <div className="w-10 h-10 rounded-lg bg-vigil-accent/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
             <Wrench size={20} className="text-vigil-accent" />
           </div>
-          <h4 className="font-medium text-vigil-text">Add Custom Tool</h4>
-          <p className="text-xs text-vigil-text-dim mt-1">Register any CLI tool with a visual builder</p>
+          <h4 className="font-medium text-vigil-text">AI Tool Builder</h4>
+          <p className="text-xs text-vigil-text-dim mt-1">Create custom tools with AI assistance</p>
+        </button>
+
+        <button
+          onClick={() => navigate('/workflows')}
+          className="glass-panel-hover p-5 text-left group"
+        >
+          <div className="w-10 h-10 rounded-lg bg-vigil-warning/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+            <GitBranch size={20} className="text-vigil-warning" />
+          </div>
+          <h4 className="font-medium text-vigil-text">Workflows</h4>
+          <p className="text-xs text-vigil-text-dim mt-1">Chain tools into automated pipelines</p>
         </button>
 
         <button
           onClick={() => navigate('/ai')}
           className="glass-panel-hover p-5 text-left group"
         >
-          <div className="w-10 h-10 rounded-lg bg-vigil-neon/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-            <TrendingUp size={20} className="text-vigil-neon" />
-          </div>
-          <h4 className="font-medium text-vigil-text">AI Assistant</h4>
-          <p className="text-xs text-vigil-text-dim mt-1">Get help configuring and understanding tools</p>
-        </button>
-
-        <button
-          onClick={() => navigate('/history')}
-          className="glass-panel-hover p-5 text-left group"
-        >
           <div className="w-10 h-10 rounded-lg bg-vigil-secondary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-            <Activity size={20} className="text-vigil-secondary" />
+            <Brain size={20} className="text-vigil-secondary" />
           </div>
-          <h4 className="font-medium text-vigil-text">View History</h4>
-          <p className="text-xs text-vigil-text-dim mt-1">Browse and export past executions</p>
+          <h4 className="font-medium text-vigil-text">AI Agent</h4>
+          <p className="text-xs text-vigil-text-dim mt-1">Get intelligent help and automation</p>
         </button>
       </motion.div>
     </div>
