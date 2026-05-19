@@ -53,4 +53,4 @@ class ExecutionLog(Base):
     level = Column(String(20), default="info")  # info, warning, error, debug
     message = Column(Text, nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
-    metadata = Column(JSON, nullable=True)
+    extra_data = Column(JSON, nullable=True)
