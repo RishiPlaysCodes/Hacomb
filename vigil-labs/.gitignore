@@ -1,41 +1,72 @@
-# Dependencies
+# ═══════════════════════════════════════════════════════════════════════════════
+# VIGIL LABS - Git Ignore
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ─── Dependencies ─────────────────────────────────────────────────────────────
 node_modules/
 __pycache__/
 *.pyc
+*.pyo
 .venv/
 venv/
+.pytest_cache/
+.mypy_cache/
 
-# Build
+# ─── Build Artifacts ──────────────────────────────────────────────────────────
 dist/
 dist-electron/
 build/
 *.egg-info/
+*.egg
+.tsbuildinfo
 
-# Database
+# ─── Database ─────────────────────────────────────────────────────────────────
 *.db
 *.sqlite
+*.sqlite3
+data/
 
-# Environment
+# ─── Environment & Secrets ────────────────────────────────────────────────────
 .env
 .env.local
+.env.production
+.env.*.local
 
-# IDE
+# ─── IDE ──────────────────────────────────────────────────────────────────────
 .vscode/
 .idea/
 *.swp
 *.swo
+*.sublime-workspace
+*.sublime-project
 
-# OS
+# ─── OS ───────────────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Logs
+# ─── Logs ─────────────────────────────────────────────────────────────────────
 *.log
 logs/
 
-# Reports (generated)
+# ─── Generated Content ───────────────────────────────────────────────────────
 reports/
 exports/
+tools/
 
-# Electron
+# ─── Electron ─────────────────────────────────────────────────────────────────
 out/
+release/
+
+# ─── Docker ───────────────────────────────────────────────────────────────────
+docker-compose.override.yml
+
+# ─── Alembic ──────────────────────────────────────────────────────────────────
+# Keep migration scripts but ignore auto-generated empty ones
+# alembic/versions/*.py  # Uncomment if you don't want to track migrations
+
+# ─── Coverage & Testing ───────────────────────────────────────────────────────
+coverage/
+.coverage
+htmlcov/
+.nyc_output/
