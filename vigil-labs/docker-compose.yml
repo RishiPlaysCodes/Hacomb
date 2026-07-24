@@ -1,0 +1,92 @@
+# VIGIL LABS - Docker Compose
+# Production deployment with backend, frontend, and optional PostgreSQL
+
+version: "3.9"
+
+services:
+  # ─── Backend API ────────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: vigil-labs-backend
+    restart: unless-stopped
+    environment:
+      - ENVIRONMENT=production
+      - SECRET_KEY=${SECRET_KEY:?Set SECRET_KEY in .env}
+      - DATABASE_URL=${DATABASE_URL:-sqlite+aiosqlite:///./data/vigil_labs.db}
+      - HOST=0.0.0.0
+      - PORT=8000
+      - WORKERS=${WORKERS:-2}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=json
+      - DEBUG=false
+      - CORS_ORIGINS=["http://localhost", "http://localhost:80"]
+      - MAX_CONCURRENT_PROCESSES=${MAX_CONCURRENT_PROCESSES:-10}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+      - REGISTRATION_ENABLED=${REGISTRATION_ENABLED:-true}
+    volumes:
+      - vigil-data:/app/data
+      - vigil-reports:/app/reports
+      - vigil-logs:/app/logs
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - vigil-network
+
+  # ─── Frontend (Nginx) ──────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: vigil-labs-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - vigil-network
+
+  # ─── PostgreSQL (Production Database) ──────────────────────────────────────
+  # Uncomment for PostgreSQL instead of SQLite
+  # postgres:
+  #   image: postgres:16-alpine
+  #   container_name: vigil-labs-db
+  #   restart: unless-stopped
+  #   environment:
+  #     - POSTGRES_USER=${DB_USER:-vigil}
+  #     - POSTGRES_PASSWORD=${DB_PASSWORD:?Set DB_PASSWORD in .env}
+  #     - POSTGRES_DB=${DB_NAME:-vigil_labs}
+  #   volumes:
+  #     - postgres-data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-vigil}"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #   networks:
+  #     - vigil-network
+
+volumes:
+  vigil-data:
+    driver: local
+  vigil-reports:
+    driver: local
+  vigil-logs:
+    driver: local
+  # postgres-data:
+  #   driver: local
+
+networks:
+  vigil-network:
+    driver: bridge

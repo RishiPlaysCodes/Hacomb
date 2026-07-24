@@ -1,0 +1,22 @@
+# VIGIL LABS Backend - Docker Ignore
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+.mypy_cache
+.env
+.env.*
+*.db
+*.sqlite3
+venv/
+.venv/
+data/
+reports/
+logs/
+exports/
+.git
+.gitignore
+alembic/versions/*.py
+!alembic/versions/__init__.py
+Dockerfile
+.dockerignore

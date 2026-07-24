@@ -10,6 +10,7 @@ from sqlalchemy import select, desc
 
 from app.core.database import get_db
 from app.core.security import get_current_user
+from app.core.validators import sanitize_search_query
 from app.models.tool import Tool, ToolArgument
 from app.models.execution import Execution, ExecutionLog
 from app.schemas.execution import (
@@ -147,7 +148,8 @@ async def get_history(
     if status:
         query = query.where(Execution.status == status)
     if search:
-        query = query.where(Execution.command.ilike(f"%{search}%"))
+        safe_search = sanitize_search_query(search)
+        query = query.where(Execution.command.ilike(f"%{safe_search}%"))
     
     # Count total
     from sqlalchemy import func
