@@ -54,93 +54,50 @@ vigil-labs/
 
 ---
 
-## Quick Start
+## Deployment
 
-### Option 1: Docker (Recommended)
+### Local Testing (VS Code)
+See the full guide: [docs/DEPLOYMENT_GUIDE.md](./docs/DEPLOYMENT_GUIDE.md#local-testing-vs-code)
 
 ```bash
-# Copy environment file
-cp .env.example .env
-
-# Generate a secret key
-python -c "import secrets; print(secrets.token_urlsafe(64))"
-# Add the output to SECRET_KEY in .env
-
-# Start all services
-docker compose up -d
-
-# Access at http://localhost
-```
-
-### Option 2: Local Development
-
-#### Backend
-```bash
+# Backend (Terminal 1)
 cd backend
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# venv\Scripts\activate   # Windows
-
+python -m venv venv && source venv/bin/activate  # or venv\Scripts\activate on Windows
 pip install -r requirements.txt
 cp .env.example .env
-# Edit .env with your settings
-
 python start.py
-# API available at http://localhost:8000
-```
 
-#### Frontend
-```bash
+# Frontend (Terminal 2)
 cd frontend
 npm install
-npm run dev              # Web development (http://localhost:5173)
-npm run electron:dev     # Electron development
+npm run dev
 ```
 
-### Option 3: Electron Desktop App
+### Google Cloud (Free)
+See the full step-by-step guide: [docs/DEPLOYMENT_GUIDE.md](./docs/DEPLOYMENT_GUIDE.md#google-cloud-free-deployment)
 
 ```bash
-cd frontend
-npm install
-npm run electron:build   # Builds packaged desktop app
+# One-time setup
+gcloud projects create vigil-labs-app
+gcloud services enable run.googleapis.com artifactregistry.googleapis.com cloudbuild.googleapis.com
+
+# Deploy backend
+cd backend && gcloud builds submit --tag asia-south1-docker.pkg.dev/vigil-labs-app/vigil-labs/backend:latest .
+gcloud run deploy vigil-labs-backend --image=... --region=asia-south1 --allow-unauthenticated
+
+# Deploy frontend
+cd frontend && npm run build
+gcloud builds submit --tag asia-south1-docker.pkg.dev/vigil-labs-app/vigil-labs/frontend:latest .
+gcloud run deploy vigil-labs-frontend --image=... --region=asia-south1 --allow-unauthenticated
 ```
 
----
-
-## Production Deployment
-
-### Using Docker Compose
+### Docker Compose (Self-hosted)
 
 ```bash
-# 1. Configure environment
 cp .env.example .env
-# Edit .env - set SECRET_KEY, DATABASE_URL, etc.
-
-# 2. Build and start
+# Set SECRET_KEY in .env
 docker compose up -d --build
-
-# 3. Check health
-curl http://localhost/health
-
-# 4. View logs
-docker compose logs -f backend
-```
-
-### With PostgreSQL
-
-Uncomment the PostgreSQL service in `docker-compose.yml` and update `DATABASE_URL`:
-
-```env
-DATABASE_URL=postgresql+asyncpg://vigil:yourpassword@postgres:5432/vigil_labs
-DB_PASSWORD=yourpassword
-```
-
-### Database Migrations
-
-```bash
-cd backend
-alembic revision --autogenerate -m "description"
-alembic upgrade head
+# Access at http://localhost
 ```
 
 ---
