@@ -1,0 +1,38 @@
+# VIGIL LABS - Docker Compose (Development)
+# Hot-reload enabled, debug mode, exposed ports
+
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: vigil-labs-backend-dev
+    environment:
+      - ENVIRONMENT=development
+      - SECRET_KEY=dev-secret-key-not-for-production
+      - DATABASE_URL=sqlite+aiosqlite:///./data/vigil_labs_dev.db
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+      - LOG_FORMAT=text
+      - CORS_ORIGINS=["http://localhost:5173","http://localhost:3000"]
+      - REGISTRATION_ENABLED=true
+    volumes:
+      - ./backend:/app
+      - vigil-dev-data:/app/data
+    ports:
+      - "8000:8000"
+    command: ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    networks:
+      - vigil-dev-network
+
+volumes:
+  vigil-dev-data:
+    driver: local
+
+networks:
+  vigil-dev-network:
+    driver: bridge

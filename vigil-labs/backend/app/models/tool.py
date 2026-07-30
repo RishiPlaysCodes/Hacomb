@@ -34,6 +34,7 @@ class Tool(Base):
     # OS Support
     supports_linux = Column(Boolean, default=True)
     supports_windows = Column(Boolean, default=False)
+    supports_macos = Column(Boolean, default=False)
     
     # Metadata
     icon = Column(String(100), nullable=True)

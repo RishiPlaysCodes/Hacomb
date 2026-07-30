@@ -9,6 +9,7 @@ from sqlalchemy import select, func, or_
 
 from app.core.database import get_db
 from app.core.security import get_current_user
+from app.core.validators import sanitize_search_query
 from app.models.tool import Tool, ToolArgument, ToolCategory
 from app.schemas.tool import (
     CreateToolRequest, UpdateToolRequest, ToolResponse,
@@ -40,10 +41,11 @@ async def list_tools(
     if risk_level:
         query = query.where(Tool.risk_level == risk_level)
     if search:
+        safe_search = sanitize_search_query(search)
         query = query.where(
             or_(
-                Tool.name.ilike(f"%{search}%"),
-                Tool.description.ilike(f"%{search}%"),
+                Tool.name.ilike(f"%{safe_search}%"),
+                Tool.description.ilike(f"%{safe_search}%"),
             )
         )
     
@@ -86,6 +88,7 @@ async def create_tool(
         command_template=request.command_template,
         supports_linux=request.supports_linux,
         supports_windows=request.supports_windows,
+        supports_macos=request.supports_macos,
         icon=request.icon,
         tags=request.tags,
         notes=request.notes,

@@ -9,6 +9,7 @@ from sqlalchemy import select, or_
 
 from app.core.database import get_db
 from app.core.security import get_current_user
+from app.core.validators import sanitize_search_query
 from app.models.store import StoreTool, InstalledStoreTool
 from app.services.tool_store import tool_store_service
 from app.services.store_catalog import TOOL_CATALOG, STORE_CATEGORIES
@@ -35,10 +36,11 @@ async def get_catalog(
     if featured_only:
         query = query.where(StoreTool.is_featured == True)
     if search:
+        safe_search = sanitize_search_query(search)
         query = query.where(
             or_(
-                StoreTool.name.ilike(f"%{search}%"),
-                StoreTool.description.ilike(f"%{search}%"),
+                StoreTool.name.ilike(f"%{safe_search}%"),
+                StoreTool.description.ilike(f"%{safe_search}%"),
             )
         )
     
@@ -66,6 +68,7 @@ async def get_catalog(
             "risk_level": tool.risk_level,
             "supports_linux": tool.supports_linux,
             "supports_windows": tool.supports_windows,
+            "supports_macos": tool.supports_macos,
             "install_method": tool.install_method,
             "github_url": tool.github_url,
             "tags": tool.tags or [],
@@ -235,6 +238,10 @@ async def seed_catalog(
     current_user: dict = Depends(get_current_user),
 ):
     """Seed the store catalog with preconfigured tools (admin only)."""
+    # Require admin role
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
     count = 0
     for tool_data in TOOL_CATALOG:
         existing = await db.execute(

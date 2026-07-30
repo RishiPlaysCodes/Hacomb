@@ -50,7 +50,7 @@ export default function ToolBuilderPage() {
   const [form, setForm] = useState({
     name: '', description: '', category_id: '', executable_path: '',
     command_template: '{executable} {args}',
-    supports_linux: true, supports_windows: false,
+    supports_linux: true, supports_windows: false, supports_macos: false,
     icon: '', tags: [] as string[], notes: '', risk_level: 'low',
     version: '', author: '', output_format: 'text',
     report_path: '', execution_timeout: 300, working_directory: '',
@@ -64,6 +64,42 @@ export default function ToolBuilderPage() {
   const [newDep, setNewDep] = useState('');
   const [newEnvKey, setNewEnvKey] = useState('');
   const [newEnvVal, setNewEnvVal] = useState('');
+  const [analyzing, setAnalyzing] = useState(false);
+
+  // One-click: run `<executable> --help` and auto-generate the GUI form
+  const autoAnalyze = async () => {
+    if (!form.executable_path) {
+      toast.error('Enter the executable path/command first');
+      return;
+    }
+    setAnalyzing(true);
+    try {
+      const res = await api.post('/api/system/ai/auto-analyze-tool', {
+        executable: form.executable_path,
+      });
+      if (!res.data.success) {
+        toast.error(res.data.error || 'Could not read tool help output');
+        return;
+      }
+      const detected = (res.data.arguments || []).map((a: any, i: number) => ({
+        ...defaultArg,
+        ...a,
+        order: i,
+      }));
+      setForm(prev => ({
+        ...prev,
+        description: prev.description || res.data.description || '',
+        command_template: res.data.command_template || prev.command_template,
+        arguments: detected.length ? detected : prev.arguments,
+      }));
+      toast.success(`Detected ${detected.length} argument(s)! Review and save.`);
+      setActiveSection('arguments');
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail || 'Auto-analyze failed');
+    } finally {
+      setAnalyzing(false);
+    }
+  };
 
   useEffect(() => {
     loadCategories();
@@ -268,7 +304,19 @@ export default function ToolBuilderPage() {
                     />
                     <span className="text-sm text-vigil-text">Windows</span>
                   </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={form.supports_macos}
+                      onChange={e => setForm({ ...form, supports_macos: e.target.checked })}
+                      className="w-4 h-4 rounded border-vigil-border bg-vigil-bg text-vigil-primary focus:ring-vigil-primary"
+                    />
+                    <span className="text-sm text-vigil-text">macOS</span>
+                  </label>
                 </div>
+                <p className="text-xs text-vigil-text-dim mt-1.5">
+                  Tip: Android (Termux) uses Linux support. Mark only the OSes where this tool actually runs so users see accurate "not supported" info.
+                </p>
               </div>
 
               {/* Tags */}
@@ -310,14 +358,30 @@ export default function ToolBuilderPage() {
                 <label className="text-sm font-medium text-vigil-text-muted block mb-1.5">
                   Executable Path <span className="text-vigil-danger">*</span>
                 </label>
-                <input
-                  type="text"
-                  value={form.executable_path}
-                  onChange={e => setForm({ ...form, executable_path: e.target.value })}
-                  placeholder="e.g., nmap, /usr/bin/python3, ./my_script.sh"
-                  className="input-field font-mono"
-                />
-                <p className="text-xs text-vigil-text-dim mt-1">Full path or command name if in PATH</p>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={form.executable_path}
+                    onChange={e => setForm({ ...form, executable_path: e.target.value })}
+                    placeholder="e.g., nmap, /usr/bin/python3, ./my_script.sh"
+                    className="input-field font-mono flex-1"
+                  />
+                  <button
+                    type="button"
+                    onClick={autoAnalyze}
+                    disabled={analyzing}
+                    className="btn-secondary flex items-center gap-2 text-sm whitespace-nowrap shrink-0"
+                    title="Run --help and auto-generate the form fields"
+                  >
+                    {analyzing
+                      ? <div className="w-4 h-4 border-2 border-vigil-primary/30 border-t-vigil-primary rounded-full animate-spin" />
+                      : <TestTube size={14} />}
+                    Auto-detect
+                  </button>
+                </div>
+                <p className="text-xs text-vigil-text-dim mt-1">
+                  Full path or command name if in PATH. Click <span className="text-vigil-primary">Auto-detect</span> to read the tool's <code>--help</code> and build the form for you.
+                </p>
               </div>
 
               <div>

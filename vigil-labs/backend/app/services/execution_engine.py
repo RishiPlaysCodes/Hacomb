@@ -1,12 +1,14 @@
 """
 VIGIL LABS - Execution Engine
 Safe command generation, validation, templating, and cross-platform execution.
+Includes command injection prevention and security validation.
 """
 import os
 import re
 import asyncio
 import shlex
 import signal
+import logging
 import platform
 from typing import Optional, Dict, Any, Callable
 from pathlib import Path
@@ -15,6 +17,9 @@ from dataclasses import dataclass, field
 import psutil
 
 from app.core.config import settings
+from app.core.security import sanitize_command_input, validate_command_safety
+
+logger = logging.getLogger("vigil_labs.execution")
 
 
 @dataclass
@@ -121,12 +126,20 @@ class ExecutionEngine:
         Build the final command from template and arguments.
         Template format: {executable} {args}
         Argument placeholders: {{arg_name}}
+        
+        SECURITY: All values are sanitized and shell-escaped.
         """
         command = template
         
+        # SECURITY: Validate executable path
+        validation = self.validate_executable(executable)
+        if not validation["valid"]:
+            raise ValueError(f"Invalid executable: {validation['message']}")
+        
         # Replace executable placeholder
-        command = command.replace("{executable}", executable)
-        command = command.replace("{{executable}}", executable)
+        safe_executable = self._escape_value(executable)
+        command = command.replace("{executable}", safe_executable)
+        command = command.replace("{{executable}}", safe_executable)
         
         # Build argument string from definitions
         arg_parts = []
@@ -140,16 +153,23 @@ class ExecutionEngine:
             if not arg_def:
                 continue
             
+            # SECURITY: Sanitize input value
+            str_value = str(value)
+            try:
+                str_value = sanitize_command_input(str_value)
+            except ValueError as e:
+                raise ValueError(f"Invalid input for '{arg_def.label}': {e}")
+            
             # Handle different field types
             if arg_def.field_type == "checkbox" or arg_def.field_type == "toggle":
                 if value:
                     if arg_def.flag:
                         arg_parts.append(arg_def.flag)
             elif arg_def.flag:
-                safe_value = self._escape_value(str(value))
+                safe_value = self._escape_value(str_value)
                 arg_parts.append(f"{arg_def.flag} {safe_value}")
             else:
-                safe_value = self._escape_value(str(value))
+                safe_value = self._escape_value(str_value)
                 arg_parts.append(safe_value)
         
         # Replace {args} placeholder
@@ -160,7 +180,11 @@ class ExecutionEngine:
         # Replace individual argument placeholders
         for name, value in arguments.items():
             placeholder = "{{" + name + "}}"
-            safe_value = self._escape_value(str(value)) if value else ""
+            if value:
+                str_value = sanitize_command_input(str(value))
+                safe_value = self._escape_value(str_value)
+            else:
+                safe_value = ""
             command = command.replace(placeholder, safe_value)
         
         # Clean up multiple spaces
@@ -183,6 +207,15 @@ class ExecutionEngine:
     ) -> ProcessInfo:
         """Execute a command asynchronously with streaming output."""
         
+        # SECURITY: Validate command safety
+        is_safe, reason = validate_command_safety(command)
+        if not is_safe:
+            logger.warning(f"Blocked unsafe command from user {user_id}: {reason}")
+            raise RuntimeError(f"Command blocked: {reason}")
+        
+        # Enforce maximum timeout
+        timeout = min(timeout, settings.MAX_TIMEOUT)
+        
         # Check concurrent process limit
         if self.running_count >= settings.MAX_CONCURRENT_PROCESSES:
             raise RuntimeError(f"Maximum concurrent processes ({settings.MAX_CONCURRENT_PROCESSES}) reached")
@@ -192,13 +225,24 @@ class ExecutionEngine:
             if proc_info.tool_id == tool_id and proc_info.user_id == user_id and proc_info.status == "running":
                 raise RuntimeError(f"Tool is already running (PID: {proc_info.pid})")
         
-        # Prepare environment
+        # Prepare environment - sanitize
         env = os.environ.copy()
         if environment:
-            env.update(environment)
+            # Only allow safe environment variable names
+            for key, value in environment.items():
+                if re.match(r'^[A-Za-z_][A-Za-z0-9_]*$', key):
+                    env[key] = str(value)
+                else:
+                    logger.warning(f"Skipping invalid env var name: {key}")
         
-        # Prepare working directory
-        cwd = working_directory if working_directory and os.path.isdir(working_directory) else None
+        # Prepare working directory - validate path
+        cwd = None
+        if working_directory and os.path.isdir(working_directory):
+            # Prevent directory traversal
+            real_path = os.path.realpath(working_directory)
+            cwd = real_path
+        
+        logger.info(f"Executing: tool={tool_id}, user={user_id}, exec_id={execution_id}")
         
         # Execute
         if self._is_windows:

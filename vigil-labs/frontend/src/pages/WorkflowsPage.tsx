@@ -99,12 +99,58 @@ export default function WorkflowsPage() {
     }
   };
 
+  const [runStatus, setRunStatus] = useState<Record<string, { status: string; current: number; total: number }>>({});
+
+  const pollRun = async (workflowId: string, runId: string) => {
+    const poll = async (): Promise<void> => {
+      try {
+        const res = await api.get(`/api/workflows/runs/${runId}`);
+        const { status, current_step, total_steps } = res.data;
+        setRunStatus(prev => ({ ...prev, [workflowId]: { status, current: current_step, total: total_steps } }));
+
+        if (status === 'running') {
+          setTimeout(poll, 1500);
+        } else if (status === 'completed') {
+          toast.success('Workflow completed!');
+          loadWorkflows();
+        } else {
+          toast.error(`Workflow ${status}`);
+          loadWorkflows();
+        }
+      } catch {
+        // stop polling on error
+      }
+    };
+    poll();
+  };
+
   const runWorkflow = async (id: string) => {
     try {
-      await api.post(`/api/workflows/${id}/run`);
+      const res = await api.post(`/api/workflows/${id}/run`);
       toast.success('Workflow started!');
+      if (res.data?.warnings?.length) {
+        toast(`Note: ${res.data.warnings.length} step(s) skipped`, { icon: '⚠️' });
+      }
+      setRunStatus(prev => ({ ...prev, [id]: { status: 'running', current: 0, total: res.data.total_steps } }));
+      if (res.data?.run_id) pollRun(id, res.data.run_id);
     } catch (err: any) {
-      toast.error(err.response?.data?.detail || 'Failed to start workflow');
+      const detail = err.response?.data?.detail;
+      if (typeof detail === 'object' && detail?.errors) {
+        toast.error(detail.errors[0] || 'Failed to start workflow');
+      } else {
+        toast.error(detail || 'Failed to start workflow');
+      }
+    }
+  };
+
+  const deleteWorkflow = async (id: string) => {
+    if (!confirm('Delete this workflow?')) return;
+    try {
+      await api.delete(`/api/workflows/${id}`);
+      toast.success('Workflow deleted');
+      setWorkflows(prev => prev.filter(w => w.id !== id));
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail || 'Failed to delete workflow');
     }
   };
 
@@ -249,14 +295,43 @@ export default function WorkflowsPage() {
                   <p className="text-xs text-vigil-text-muted mt-0.5">{wf.description}</p>
                 </div>
                 <div className="flex items-center gap-1">
-                  <button onClick={() => runWorkflow(wf.id)} className="p-1.5 rounded hover:bg-vigil-success/10 text-vigil-success" title="Run">
+                  <button
+                    onClick={() => runWorkflow(wf.id)}
+                    disabled={runStatus[wf.id]?.status === 'running'}
+                    className="p-1.5 rounded hover:bg-vigil-success/10 text-vigil-success disabled:opacity-40"
+                    title="Run"
+                  >
                     <Play size={14} />
                   </button>
-                  <button className="p-1.5 rounded hover:bg-vigil-danger/10 text-vigil-danger" title="Delete">
+                  <button
+                    onClick={() => deleteWorkflow(wf.id)}
+                    className="p-1.5 rounded hover:bg-vigil-danger/10 text-vigil-danger"
+                    title="Delete"
+                  >
                     <Trash2 size={14} />
                   </button>
                 </div>
               </div>
+
+              {/* Live run status */}
+              {runStatus[wf.id] && (
+                <div className="mt-3 flex items-center gap-2 text-[11px]">
+                  {runStatus[wf.id].status === 'running' ? (
+                    <>
+                      <div className="w-3 h-3 border-2 border-vigil-primary/30 border-t-vigil-primary rounded-full animate-spin" />
+                      <span className="text-vigil-primary">
+                        Running step {runStatus[wf.id].current}/{runStatus[wf.id].total}...
+                      </span>
+                    </>
+                  ) : runStatus[wf.id].status === 'completed' ? (
+                    <span className="text-vigil-success flex items-center gap-1">
+                      <CheckCircle size={12} /> Completed
+                    </span>
+                  ) : (
+                    <span className="text-vigil-danger">Status: {runStatus[wf.id].status}</span>
+                  )}
+                </div>
+              )}
 
               {/* Steps visualization */}
               <div className="flex items-center gap-1.5 mt-3 overflow-x-auto">

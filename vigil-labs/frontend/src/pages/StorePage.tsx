@@ -18,6 +18,7 @@ interface StoreTool {
   risk_level: string;
   supports_linux: boolean;
   supports_windows: boolean;
+  supports_macos: boolean;
   install_method: string;
   github_url?: string;
   tags: string[];
@@ -47,11 +48,29 @@ export default function StorePage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [installingIds, setInstallingIds] = useState<Set<string>>(new Set());
   const [showInstalled, setShowInstalled] = useState(false);
+  const [currentOS, setCurrentOS] = useState<string>('linux');
+  const [canSudo, setCanSudo] = useState<boolean>(true);
 
   useEffect(() => {
     loadStore();
     loadCategories();
+    loadPlatform();
   }, []);
+
+  const loadPlatform = async () => {
+    try {
+      const res = await api.get('/api/store/platform');
+      setCurrentOS(res.data.os || 'linux');
+      setCanSudo(res.data.can_sudo ?? true);
+    } catch {}
+  };
+
+  // Is this tool supported on the user's current OS?
+  const isSupportedHere = (tool: StoreTool): boolean => {
+    if (currentOS === 'windows') return tool.supports_windows;
+    if (currentOS === 'macos') return tool.supports_macos;
+    return tool.supports_linux; // linux (incl. Kali) / Android-Termux
+  };
 
   const loadStore = async () => {
     try {
@@ -76,10 +95,15 @@ export default function StorePage() {
     try {
       const res = await api.post(`/api/store/install/${toolId}`);
       if (res.data.success) {
-        toast.success(`${res.data.tool_name} installed successfully!`);
+        const msg = res.data.details?.already_installed
+          ? `${res.data.tool_name} is already installed`
+          : `${res.data.tool_name} installed successfully!`;
+        toast.success(msg);
         setTools(tools.map(t => t.id === toolId ? { ...t, install_status: 'installed', is_enabled: true } : t));
       } else {
-        toast.error(`Installation failed: ${res.data.details?.error || 'Unknown error'}`);
+        const err = res.data.details?.error || 'Unknown error';
+        const hint = res.data.details?.hint;
+        toast.error(hint ? `${err}\n${hint}` : `Install failed: ${err}`, { duration: 6000 });
         setTools(tools.map(t => t.id === toolId ? { ...t, install_status: 'failed' } : t));
       }
     } catch (err: any) {
@@ -288,9 +312,20 @@ export default function StorePage() {
                 <span className="text-[10px] text-vigil-text-dim ml-auto">{tool.install_method}</span>
               </div>
 
+              {/* Platform support badges */}
+              <div className="flex items-center gap-1.5 mt-3">
+                <span className={`text-[10px] px-1.5 py-0.5 rounded border ${tool.supports_linux ? 'text-vigil-success border-vigil-success/30 bg-vigil-success/5' : 'text-vigil-text-dim border-vigil-border line-through opacity-50'}`}>Linux</span>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded border ${tool.supports_windows ? 'text-vigil-success border-vigil-success/30 bg-vigil-success/5' : 'text-vigil-text-dim border-vigil-border line-through opacity-50'}`}>Windows</span>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded border ${tool.supports_macos ? 'text-vigil-success border-vigil-success/30 bg-vigil-success/5' : 'text-vigil-text-dim border-vigil-border line-through opacity-50'}`}>macOS</span>
+              </div>
+
               {/* Actions */}
               <div className="flex items-center gap-2 mt-3">
-                {tool.install_status === 'installed' || tool.install_status === 'available' ? (
+                {!isSupportedHere(tool) ? (
+                  <div className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-vigil-danger/5 text-vigil-danger border border-vigil-danger/20">
+                    <AlertTriangle size={13} /> Not supported on your OS ({currentOS})
+                  </div>
+                ) : tool.install_status === 'installed' || tool.install_status === 'available' ? (
                   <>
                     <button
                       onClick={() => toggleTool(tool.id)}
