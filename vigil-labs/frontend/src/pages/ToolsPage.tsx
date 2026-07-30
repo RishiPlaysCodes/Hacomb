@@ -21,6 +21,7 @@ interface Tool {
   icon?: string;
   supports_linux: boolean;
   supports_windows: boolean;
+  supports_macos: boolean;
 }
 
 export default function ToolsPage() {
@@ -31,11 +32,19 @@ export default function ToolsPage() {
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [categories, setCategories] = useState<any[]>([]);
+  const [currentOS, setCurrentOS] = useState<string>('linux');
 
   useEffect(() => {
     loadTools();
     loadCategories();
+    api.get('/api/store/platform').then(r => setCurrentOS(r.data.os || 'linux')).catch(() => {});
   }, []);
+
+  const isSupportedHere = (t: Tool): boolean => {
+    if (currentOS === 'windows') return t.supports_windows;
+    if (currentOS === 'macos') return t.supports_macos;
+    return t.supports_linux;
+  };
 
   const loadTools = async () => {
     try {
@@ -208,6 +217,13 @@ export default function ToolsPage() {
                 </div>
               )}
 
+              {/* Not supported on current OS warning */}
+              {!isSupportedHere(tool) && (
+                <div className="mt-3 flex items-center gap-1.5 text-[11px] text-vigil-danger bg-vigil-danger/5 border border-vigil-danger/20 rounded px-2 py-1">
+                  <AlertTriangle size={12} /> Not supported on your OS ({currentOS})
+                </div>
+              )}
+
               {/* Footer */}
               <div className="flex items-center justify-between mt-4 pt-3 border-t border-vigil-border/50">
                 <div className="flex items-center gap-2">
@@ -223,8 +239,9 @@ export default function ToolsPage() {
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={() => navigate(`/execute/${tool.id}`)}
-                    className="p-1.5 rounded-md hover:bg-vigil-success/10 text-vigil-success transition-colors"
-                    title="Run"
+                    disabled={!isSupportedHere(tool)}
+                    className="p-1.5 rounded-md hover:bg-vigil-success/10 text-vigil-success transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    title={isSupportedHere(tool) ? 'Run' : 'Not supported on your OS'}
                   >
                     <Play size={14} />
                   </button>

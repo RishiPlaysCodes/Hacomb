@@ -40,6 +40,7 @@ class CreateToolRequest(BaseModel):
     
     supports_linux: bool = True
     supports_windows: bool = False
+    supports_macos: bool = False
     
     icon: Optional[str] = None
     tags: List[str] = []
@@ -71,6 +72,7 @@ class UpdateToolRequest(BaseModel):
     command_template: Optional[str] = None
     supports_linux: Optional[bool] = None
     supports_windows: Optional[bool] = None
+    supports_macos: Optional[bool] = None
     icon: Optional[str] = None
     tags: Optional[List[str]] = None
     notes: Optional[str] = None
@@ -89,6 +91,7 @@ class ToolResponse(BaseModel):
     command_template: str
     supports_linux: bool
     supports_windows: bool
+    supports_macos: bool = False
     icon: Optional[str] = None
     tags: List[str] = []
     notes: Optional[str] = None

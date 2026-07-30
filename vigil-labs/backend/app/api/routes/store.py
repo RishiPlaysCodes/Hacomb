@@ -68,6 +68,7 @@ async def get_catalog(
             "risk_level": tool.risk_level,
             "supports_linux": tool.supports_linux,
             "supports_windows": tool.supports_windows,
+            "supports_macos": tool.supports_macos,
             "install_method": tool.install_method,
             "github_url": tool.github_url,
             "tags": tool.tags or [],

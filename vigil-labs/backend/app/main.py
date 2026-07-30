@@ -45,11 +45,13 @@ async def lifespan(app: FastAPI):
                     install_method=tool_data.get("install_method", "manual"),
                     install_command_linux=tool_data.get("install_command_linux"),
                     install_command_windows=tool_data.get("install_command_windows"),
+                    install_command_macos=tool_data.get("install_command_macos"),
                     github_repo=tool_data.get("github_repo"),
                     github_url=tool_data.get("github_url"),
                     risk_level=tool_data.get("risk_level", "medium"),
                     supports_linux=tool_data.get("supports_linux", True),
                     supports_windows=tool_data.get("supports_windows", False),
+                    supports_macos=tool_data.get("supports_macos", False),
                     tags=tool_data.get("tags", []),
                     is_featured=tool_data.get("is_featured", False), is_verified=True,
                 )

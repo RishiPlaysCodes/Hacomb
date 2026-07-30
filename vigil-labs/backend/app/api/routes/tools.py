@@ -88,6 +88,7 @@ async def create_tool(
         command_template=request.command_template,
         supports_linux=request.supports_linux,
         supports_windows=request.supports_windows,
+        supports_macos=request.supports_macos,
         icon=request.icon,
         tags=request.tags,
         notes=request.notes,
