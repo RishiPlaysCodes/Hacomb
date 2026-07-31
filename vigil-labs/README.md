@@ -54,51 +54,44 @@ vigil-labs/
 
 ---
 
-## Deployment
+## Quick Start (One-Shot Commands)
 
-### Local Testing (VS Code)
-See the full guide: [docs/DEPLOYMENT_GUIDE.md](./docs/DEPLOYMENT_GUIDE.md#local-testing-vs-code)
-
-```bash
-# Backend (Terminal 1)
-cd backend
-python -m venv venv && source venv/bin/activate  # or venv\Scripts\activate on Windows
+### Windows — First Time Setup
+Open PowerShell and paste this entire block:
+```powershell
+cd C:\Users\gurud\Hacomb\vigil-labs\backend
+python -m venv venv
+venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env
-python start.py
+```
+Then create `.env`:
+```powershell
+copy .env.example .env
+python -c "import secrets; print(secrets.token_urlsafe(64))"
+```
+Copy the output, open `.env` in notepad, paste after `SECRET_KEY=`, also set `AI_MODEL=gemini` and `GEMINI_API_KEY=your_key`. Save.
 
-# Frontend (Terminal 2)
-cd frontend
-npm install
+### Daily Use (Every Time You Want to Run)
+**Terminal 1 — Backend:**
+```powershell
+cd C:\Users\gurud\Hacomb\vigil-labs\backend
+venv\Scripts\activate
+python start.py
+```
+
+**Terminal 2 — Frontend:**
+```powershell
+cd C:\Users\gurud\Hacomb\vigil-labs\frontend
 npm run dev
 ```
 
-### Google Cloud (Free)
-See the full step-by-step guide: [docs/DEPLOYMENT_GUIDE.md](./docs/DEPLOYMENT_GUIDE.md#google-cloud-free-deployment)
+**Open:** http://localhost:5173
 
-```bash
-# One-time setup
-gcloud projects create vigil-labs-app
-gcloud services enable run.googleapis.com artifactregistry.googleapis.com cloudbuild.googleapis.com
+**First time:** Register with username `admin`, password `Test1234` (8+ chars, uppercase+lowercase+number).
 
-# Deploy backend
-cd backend && gcloud builds submit --tag asia-south1-docker.pkg.dev/vigil-labs-app/vigil-labs/backend:latest .
-gcloud run deploy vigil-labs-backend --image=... --region=asia-south1 --allow-unauthenticated
-
-# Deploy frontend
-cd frontend && npm run build
-gcloud builds submit --tag asia-south1-docker.pkg.dev/vigil-labs-app/vigil-labs/frontend:latest .
-gcloud run deploy vigil-labs-frontend --image=... --region=asia-south1 --allow-unauthenticated
-```
-
-### Docker Compose (Self-hosted)
-
-```bash
-cp .env.example .env
-# Set SECRET_KEY in .env
-docker compose up -d --build
-# Access at http://localhost
-```
+### OR — One Double-Click (START.bat)
+Just double-click: `C:\Users\gurud\Hacomb\vigil-labs\START.bat`
+It does everything automatically.
 
 ---
 
