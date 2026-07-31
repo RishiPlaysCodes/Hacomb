@@ -80,7 +80,9 @@ class Settings(BaseSettings):
     
     # AI Assistant
     AI_ENABLED: bool = True
-    AI_MODEL: str = "local"
+    AI_MODEL: str = "gemini"  # local = rule-based, gemini = Google Gemini AI
+    GEMINI_API_KEY: str = ""  # Get free key: https://aistudio.google.com/apikey
+    GEMINI_MODEL: str = "gemini-2.0-flash"  # fast + free
     
     # Cross-platform
     PLATFORM: str = os.name  # 'nt' for Windows, 'posix' for Linux/Mac

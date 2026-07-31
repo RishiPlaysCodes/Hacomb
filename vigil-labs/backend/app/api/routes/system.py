@@ -9,6 +9,7 @@ from app.core.security import get_current_user
 from app.services.execution_engine import execution_engine
 from app.services.ai_assistant import ai_assistant
 from app.services.ai_agent import ai_agent
+from app.services import gemini_ai
 
 router = APIRouter(prefix="/api/system", tags=["System"])
 
@@ -175,3 +176,74 @@ async def ai_auto_analyze_tool(
 ):
     """AI Agent: Auto-analyze a tool by running --help and generating config."""
     return await ai_agent.auto_analyze_tool(data.get("executable", ""))
+
+
+
+# ─── GEMINI AI ENDPOINTS ────────────────────────────────────────────────────
+
+@router.post("/ai/chat")
+async def ai_chat(
+    data: dict,
+    current_user: dict = Depends(get_current_user),
+):
+    """Gemini AI: Free-form chat with the AI assistant."""
+    message = data.get("message", "")
+    context = data.get("context", "")
+    if not message:
+        return {"response": "Please provide a message."}
+    response = await gemini_ai.chat(message, context)
+    return {"response": response}
+
+
+@router.post("/ai/analyze-output-gemini")
+async def ai_analyze_output_gemini(
+    data: dict,
+    current_user: dict = Depends(get_current_user),
+):
+    """Gemini AI: Deep analysis of tool output."""
+    response = await gemini_ai.analyze_tool_output(
+        data.get("output", ""),
+        data.get("tool_name", "unknown"),
+        data.get("command", ""),
+    )
+    return {"response": response}
+
+
+@router.post("/ai/analyze-error-gemini")
+async def ai_analyze_error_gemini(
+    data: dict,
+    current_user: dict = Depends(get_current_user),
+):
+    """Gemini AI: Error analysis with exact fix commands."""
+    response = await gemini_ai.analyze_error(
+        data.get("error", ""),
+        data.get("tool_name", "unknown"),
+        data.get("command", ""),
+    )
+    return {"response": response}
+
+
+@router.post("/ai/suggest-config-gemini")
+async def ai_suggest_config_gemini(
+    data: dict,
+    current_user: dict = Depends(get_current_user),
+):
+    """Gemini AI: Suggest tool configuration for a goal."""
+    response = await gemini_ai.suggest_tool_config(
+        data.get("tool_name", ""),
+        data.get("goal", ""),
+    )
+    return {"response": response}
+
+
+@router.post("/ai/generate-workflow-gemini")
+async def ai_generate_workflow_gemini(
+    data: dict,
+    current_user: dict = Depends(get_current_user),
+):
+    """Gemini AI: Generate a workflow from a goal."""
+    response = await gemini_ai.generate_workflow(
+        data.get("goal", ""),
+        data.get("available_tools", []),
+    )
+    return {"response": response}
