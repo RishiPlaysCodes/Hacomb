@@ -108,11 +108,11 @@ export default function LoginPage() {
               <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-vigil-text-dim" />
               <input
                 type={showPassword ? 'text' : 'password'}
-                placeholder="Password"
+                placeholder={isRegister ? 'Password (8+ chars, A-z, 0-9)' : 'Password'}
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
                 required
-                minLength={6}
+                minLength={isRegister ? 8 : 6}
                 className="input-field pl-10 pr-10"
               />
               <button

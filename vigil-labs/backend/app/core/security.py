@@ -190,6 +190,10 @@ async def get_current_admin(
 
 async def check_rate_limit(request: Request):
     """General rate limiting dependency."""
+    # Skip rate limiting entirely in development
+    if settings.ENVIRONMENT == "development":
+        return
+
     client_ip = request.client.host if request.client else "unknown"
     key = f"general:{client_ip}"
     
@@ -212,6 +216,10 @@ async def check_rate_limit(request: Request):
 
 async def check_auth_rate_limit(request: Request):
     """Stricter rate limiting for authentication endpoints."""
+    # Skip rate limiting entirely in development
+    if settings.ENVIRONMENT == "development":
+        return
+
     client_ip = request.client.host if request.client else "unknown"
     key = f"auth:{client_ip}"
     

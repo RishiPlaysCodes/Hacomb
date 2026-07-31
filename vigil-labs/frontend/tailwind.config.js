@@ -7,32 +7,32 @@ export default {
   theme: {
     extend: {
       colors: {
-        // ─── VIGIL LABS Design System ─────────────────────────────
+        // ─── VIGIL LABS Design System (Premium Light) ─────────────
         vigil: {
           // Backgrounds
-          bg: '#0a0a0f',
-          surface: '#12121a',
-          card: '#1a1a2e',
-          hover: '#22223a',
+          bg: '#f6f7fb',        // soft off-white page background
+          surface: '#ffffff',   // inputs / raised surfaces
+          card: '#ffffff',      // cards / panels
+          hover: '#f1f5f9',     // hover state
 
           // Borders
-          border: '#2a2a3e',
+          border: '#e5e8ef',
 
           // Primary palette
           primary: '#6366f1',
           'primary-light': '#818cf8',
-          secondary: '#06b6d4',
-          accent: '#8b5cf6',
+          secondary: '#0891b2',
+          accent: '#7c3aed',
 
           // Semantic
-          success: '#10b981',
-          warning: '#f59e0b',
-          danger: '#ef4444',
+          success: '#059669',
+          warning: '#d97706',
+          danger: '#dc2626',
 
-          // Text
-          text: '#e2e8f0',
-          'text-muted': '#94a3b8',
-          'text-dim': '#64748b',
+          // Text (dark on light)
+          text: '#0f172a',
+          'text-muted': '#475569',
+          'text-dim': '#94a3b8',
 
           // Neon/Special
           neon: '#6366f1',
@@ -44,9 +44,9 @@ export default {
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
       },
       boxShadow: {
-        'glow-sm': '0 0 8px rgba(99, 102, 241, 0.15)',
-        'glow': '0 0 20px rgba(99, 102, 241, 0.3), 0 0 40px rgba(99, 102, 241, 0.1)',
-        'glass': '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.03)',
+        'glow-sm': '0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.1)',
+        'glow': '0 4px 16px rgba(99, 102, 241, 0.18), 0 2px 4px rgba(15, 23, 42, 0.06)',
+        'glass': '0 1px 3px rgba(15, 23, 42, 0.08), 0 8px 24px rgba(15, 23, 42, 0.06)',
       },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-in-out',

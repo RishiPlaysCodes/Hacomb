@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { api } from '../utils/api';
+import { api, getErrorMessage } from '../utils/api';
 
 interface User {
   id: string;
@@ -56,7 +56,7 @@ export const useAuthStore = create<AuthState>()(
           });
         } catch (error: any) {
           set({ isLoading: false });
-          throw new Error(error.response?.data?.detail || 'Login failed');
+          throw new Error(getErrorMessage(error));
         }
       },
 
@@ -75,7 +75,7 @@ export const useAuthStore = create<AuthState>()(
           });
         } catch (error: any) {
           set({ isLoading: false });
-          throw new Error(error.response?.data?.detail || 'Registration failed');
+          throw new Error(getErrorMessage(error));
         }
       },
 
