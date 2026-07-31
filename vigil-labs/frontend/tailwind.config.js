@@ -7,49 +7,46 @@ export default {
   theme: {
     extend: {
       colors: {
-        // VIGIL LABS Dark Theme
-        primary: {
-          50: '#eef2ff',
-          100: '#e0e7ff',
-          200: '#c7d2fe',
-          300: '#a5b4fc',
-          400: '#818cf8',
-          500: '#6366f1',
-          600: '#4f46e5',
-          700: '#4338ca',
-          800: '#3730a3',
-          900: '#312e81',
-          950: '#1e1b4b',
-        },
-        dark: {
-          50: '#f8fafc',
-          100: '#f1f5f9',
-          200: '#e2e8f0',
-          300: '#cbd5e1',
-          400: '#94a3b8',
-          500: '#64748b',
-          600: '#475569',
-          700: '#334155',
-          800: '#1e293b',
-          900: '#0f172a',
-          950: '#020617',
-        },
-        surface: {
-          DEFAULT: '#0a0a0f',
-          raised: '#12121a',
-          overlay: '#1a1a2e',
+        // ─── VIGIL LABS Design System ─────────────────────────────
+        vigil: {
+          // Backgrounds
+          bg: '#0a0a0f',
+          surface: '#12121a',
+          card: '#1a1a2e',
+          hover: '#22223a',
+
+          // Borders
           border: '#2a2a3e',
-        },
-        accent: {
-          cyan: '#06b6d4',
-          emerald: '#10b981',
-          amber: '#f59e0b',
-          rose: '#f43f5e',
+
+          // Primary palette
+          primary: '#6366f1',
+          'primary-light': '#818cf8',
+          secondary: '#06b6d4',
+          accent: '#8b5cf6',
+
+          // Semantic
+          success: '#10b981',
+          warning: '#f59e0b',
+          danger: '#ef4444',
+
+          // Text
+          text: '#e2e8f0',
+          'text-muted': '#94a3b8',
+          'text-dim': '#64748b',
+
+          // Neon/Special
+          neon: '#6366f1',
+          'neon-blue': '#3b82f6',
         },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+      },
+      boxShadow: {
+        'glow-sm': '0 0 8px rgba(99, 102, 241, 0.15)',
+        'glow': '0 0 20px rgba(99, 102, 241, 0.3), 0 0 40px rgba(99, 102, 241, 0.1)',
+        'glass': '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.03)',
       },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-in-out',
