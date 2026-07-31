@@ -101,8 +101,26 @@ function setCSP() {
 function startBackend() {
   if (isDev) return; // In dev, backend runs separately
 
+  // Resolve backend directory - works both in dev and packaged
+  let backendDir;
+  if (app.isPackaged) {
+    // In packaged app, backend should be next to the .exe
+    backendDir = path.join(path.dirname(app.getPath('exe')), 'backend');
+  } else {
+    backendDir = path.join(__dirname, '../../backend');
+  }
+
+  // Check if backend directory exists
+  const fs = require('fs');
+  if (!fs.existsSync(backendDir)) {
+    console.error(`[Backend] Directory not found: ${backendDir}`);
+    console.error('[Backend] Please ensure the backend folder is next to the app.');
+    // Don't crash - just show the app without backend
+    // User can start backend manually
+    return;
+  }
+
   const pythonPath = process.platform === 'win32' ? 'python' : 'python3';
-  const backendDir = path.join(__dirname, '../../backend');
 
   backendProcess = spawn(
     pythonPath,
@@ -111,6 +129,7 @@ function startBackend() {
       cwd: backendDir,
       env: { ...process.env, PYTHONPATH: backendDir, ENVIRONMENT: 'production' },
       stdio: ['ignore', 'pipe', 'pipe'],
+      shell: true, // Use shell on Windows to find python in PATH
     }
   );
 
