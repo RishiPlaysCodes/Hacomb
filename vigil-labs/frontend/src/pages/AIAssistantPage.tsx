@@ -17,11 +17,12 @@ interface Message {
 }
 
 const agentModes = [
+  { id: 'chat', icon: Sparkles, label: 'AI Chat', placeholder: 'Ask me anything about security, tools, hacking...', description: 'Chat with Gemini AI about anything' },
   { id: 'goal', icon: Target, label: 'Understand Goal', placeholder: 'Describe what you want to achieve...', description: 'AI understands your goal and recommends tools/workflows' },
-  { id: 'workflow', icon: GitBranch, label: 'Generate Workflow', placeholder: 'Describe the pipeline you need...', description: 'Auto-generate multi-tool workflows' },
+  { id: 'workflow', icon: GitBranch, label: 'Generate Workflow', placeholder: 'Describe the pipeline you need...', description: 'Auto-generate multi-tool workflows with Gemini' },
   { id: 'recommend', icon: Lightbulb, label: 'Recommend Tools', placeholder: 'What task do you need to accomplish?', description: 'Get tool recommendations for any task' },
-  { id: 'explain', icon: BookOpen, label: 'Explain Output', placeholder: 'Paste tool output here...', description: 'Explain tool output in simple language' },
-  { id: 'error', icon: AlertTriangle, label: 'Fix Error', placeholder: 'Paste error message here...', description: 'Analyze errors and get auto-fix suggestions' },
+  { id: 'explain', icon: BookOpen, label: 'Explain Output', placeholder: 'Paste tool output here...', description: 'Explain tool output with Gemini AI' },
+  { id: 'error', icon: AlertTriangle, label: 'Fix Error', placeholder: 'Paste error message here...', description: 'Analyze errors and get fixes with Gemini AI' },
   { id: 'analyze', icon: Search, label: 'Analyze Tool', placeholder: 'Enter tool executable name (e.g., nmap)...', description: 'Auto-analyze any CLI tool and generate GUI config' },
 ];
 
@@ -34,7 +35,7 @@ export default function AIAssistantPage() {
     },
   ]);
   const [input, setInput] = useState('');
-  const [activeMode, setActiveMode] = useState<string>('goal');
+  const [activeMode, setActiveMode] = useState<string>('chat');
   const [loading, setLoading] = useState(false);
   const [toolName, setToolName] = useState('');
 
@@ -52,40 +53,49 @@ export default function AIAssistantPage() {
       let formattedContent = '';
 
       switch (activeMode) {
+        case 'chat':
+          response = await api.post('/api/system/ai/chat', { message: currentInput });
+          formattedContent = response.data.response || 'No response.';
+          break;
         case 'goal':
-          response = await api.post('/api/system/ai/understand-goal', { goal: currentInput });
-          formattedContent = formatGoalResponse(response.data);
+          response = await api.post('/api/system/ai/chat', {
+            message: `My goal: ${currentInput}\n\nAs a security expert, tell me: which tools to use, a recommended approach, and safety notes.`,
+          });
+          formattedContent = response.data.response || 'No response.';
           break;
         case 'workflow':
-          response = await api.post('/api/system/ai/generate-workflow', { goal: currentInput, available_tools: [] });
-          formattedContent = formatWorkflowResponse(response.data);
+          response = await api.post('/api/system/ai/generate-workflow-gemini', { goal: currentInput, available_tools: [] });
+          formattedContent = response.data.response || 'No response.';
           break;
         case 'recommend':
-          response = await api.post('/api/system/ai/recommend-tools', { task: currentInput });
-          formattedContent = formatRecommendResponse(response.data);
+          response = await api.post('/api/system/ai/chat', {
+            message: `Recommend the best security tools for this task: ${currentInput}. List each tool with a one-line reason.`,
+          });
+          formattedContent = response.data.response || 'No response.';
           break;
         case 'explain':
-          response = await api.post('/api/system/ai/explain-output', { output: currentInput, tool_name: toolName || 'unknown', command: '' });
-          formattedContent = formatExplainResponse(response.data);
+          response = await api.post('/api/system/ai/analyze-output-gemini', { output: currentInput, tool_name: toolName || 'unknown', command: '' });
+          formattedContent = response.data.response || 'No response.';
           break;
         case 'error':
-          response = await api.post('/api/system/ai/analyze-error-advanced', { error: currentInput, tool_name: toolName || 'unknown', command: '' });
-          formattedContent = formatErrorResponse(response.data);
+          response = await api.post('/api/system/ai/analyze-error-gemini', { error: currentInput, tool_name: toolName || 'unknown', command: '' });
+          formattedContent = response.data.response || 'No response.';
           break;
         case 'analyze':
           response = await api.post('/api/system/ai/auto-analyze-tool', { executable: currentInput.trim() });
           formattedContent = formatAnalyzeResponse(response.data);
           break;
         default:
-          response = await api.post('/api/system/ai/understand-goal', { goal: currentInput });
-          formattedContent = formatGoalResponse(response.data);
+          response = await api.post('/api/system/ai/chat', { message: currentInput });
+          formattedContent = response.data.response || 'No response.';
       }
 
       const agentMsg: Message = { id: crypto.randomUUID(), role: 'agent', content: formattedContent, type: activeMode, data: response.data };
       setMessages(prev => [...prev, agentMsg]);
-    } catch (err) {
-      toast.error('AI Agent request failed');
-      setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'agent', content: 'Sorry, I encountered an error. Please try again.' }]);
+    } catch (err: any) {
+      const detail = err?.response?.data?.error?.message || err?.response?.data?.detail || err?.message || 'request failed';
+      toast.error(`AI error: ${detail}`);
+      setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'agent', content: `Sorry, I hit an error: ${detail}\n\nCheck that GEMINI_API_KEY is set in backend/.env and AI_MODEL=gemini.` }]);
     } finally {
       setLoading(false);
     }
@@ -94,7 +104,7 @@ export default function AIAssistantPage() {
   return (
     <div className="h-full flex flex-col max-w-5xl mx-auto">
       {/* Mode Selector */}
-      <div className="grid grid-cols-3 md:grid-cols-6 gap-2 mb-4">
+      <div className="grid grid-cols-4 md:grid-cols-7 gap-2 mb-4">
         {agentModes.map(mode => (
           <button
             key={mode.id}
