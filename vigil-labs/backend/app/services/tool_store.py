@@ -61,19 +61,33 @@ class ToolStoreService:
     def get_install_command(self, store_tool: dict) -> Optional[str]:
         """Get the appropriate install command for the current platform."""
         method = store_tool.get("install_method", "manual")
-        
-        name = store_tool.get("executable_name", store_tool["name"])
+        name = store_tool.get("executable_name", store_tool.get("name", ""))
 
         if self._is_windows:
+            # 1. Try explicit Windows command first
             cmd = store_tool.get("install_command_windows")
             if cmd:
                 return cmd
+            # 2. Try pip (works on all platforms)
+            if method == "pip":
+                return f"pip install {name}"
+            # 3. Try winget/choco by method
             if method == "winget":
                 return f"winget install {name}"
             elif method == "choco":
                 return f"choco install {name} -y"
-            elif method == "pip":
-                return f"pip install {name}"
+            # 4. For github tools, try pip or git clone
+            elif method == "github":
+                repo = store_tool.get("github_repo")
+                if repo:
+                    return f"pip install git+https://github.com/{repo}"
+            # 5. Fallback: try winget (many tools available there)
+            if shutil.which("winget"):
+                return f"winget install {name}"
+            elif shutil.which("choco"):
+                return f"choco install {name} -y"
+            # 6. Final fallback for pip-installable tools
+            return f"pip install {name}"
         elif self._is_macos:
             cmd = store_tool.get("install_command_macos")
             if cmd:
