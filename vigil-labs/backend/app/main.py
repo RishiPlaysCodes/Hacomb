@@ -97,7 +97,8 @@ async def security_headers_middleware(request: Request, call_next):
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     
     # Remove server identification
-    response.headers.pop("server", None)
+    if "server" in response.headers:
+        del response.headers["server"]
     
     return response
 
