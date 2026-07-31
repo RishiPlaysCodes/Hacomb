@@ -5,22 +5,17 @@ Production-grade security with proper validation and protection.
 """
 import time
 import logging
+import bcrypt as _bcrypt
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Tuple
 from collections import defaultdict
 from jose import JWTError, jwt, ExpiredSignatureError
-from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.core.config import settings
 
 logger = logging.getLogger("vigil_labs.security")
 
-pwd_context = CryptContext(
-    schemes=["bcrypt"],
-    deprecated="auto",
-    bcrypt__rounds=12,  # Production-grade rounds
-)
 security_scheme = HTTPBearer()
 
 
@@ -78,17 +73,17 @@ rate_limiter = RateLimiter()
 # ─── Password Security ────────────────────────────────────────────────────────
 
 def hash_password(password: str) -> str:
-    """Hash a password using bcrypt with production-grade rounds."""
-    # bcrypt has a 72-byte limit - truncate if needed
-    password = password[:72]
-    return pwd_context.hash(password)
+    """Hash a password using bcrypt directly (no passlib)."""
+    pwd_bytes = password.encode("utf-8")[:72]  # bcrypt 72-byte limit
+    salt = _bcrypt.gensalt(rounds=12)
+    return _bcrypt.hashpw(pwd_bytes, salt).decode("utf-8")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify a password against its hash."""
-    # bcrypt has a 72-byte limit - truncate to match
-    plain_password = plain_password[:72]
-    return pwd_context.verify(plain_password, hashed_password)
+    """Verify a password against its bcrypt hash."""
+    pwd_bytes = plain_password.encode("utf-8")[:72]
+    hash_bytes = hashed_password.encode("utf-8")
+    return _bcrypt.checkpw(pwd_bytes, hash_bytes)
 
 
 def validate_password_strength(password: str) -> Tuple[bool, str]:
